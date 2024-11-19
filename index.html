@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Uploader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(120deg, #f6d365, #fda085);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .upload-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .upload-container h1 {
+            margin-bottom: 20px;
+        }
+        .upload-container input[type="file"] {
+            margin-bottom: 20px;
+        }
+        .upload-container button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .upload-container button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+        #fileLink {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #0066cc;
+            text-decoration: none;
+            display: none;
+        }
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #333;
+            margin-top: 20px;
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+        }
+        footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>File Uploader</h1>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload</button>
+        <div id="status"></div>
+        <a id="fileLink" href="#" target="_blank">View Uploaded File</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 <a href="https://bio.link/chitron" target="_blank">Chitron Bhattacharjee</a>. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        async function uploadFile() {
+            const userHash = "601039186089b6197221ffcbb33e5e890cab59a9";
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            const fileLink = document.getElementById('fileLink');
+
+            // Reset link visibility and status text
+            fileLink.style.display = "none";
+            status.innerText = "";
+
+            // Check if a file is selected
+            if (!fileInput.files.length) {
+                status.innerText = "Please select a file.";
+                return;
+            }
+
+            const file = fileInput.files[0];
+            status.innerText = "Getting server URL...";
+
+            try {
+                // Step 1: Get the upload server URL
+                const serverResponse = await fetch("http://nitroflare.com/plugins/fileupload/getServer");
+                const serverURL = await serverResponse.text();
+
+                // Step 2: Upload the file
+                const formData = new FormData();
+                formData.append("user", userHash);
+                formData.append("files", file);
+
+                status.innerText = "Uploading file...";
+                const uploadResponse = await fetch(serverURL, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await uploadResponse.json();
+                if (result.status === "success") {
+                    const fileID = result.file_id;
+                    const fileURL = `https://nitroflare.com/view/${fileID}`;
+                    status.innerText = "File uploaded successfully!";
+                    fileLink.href = fileURL;
+                    fileLink.style.display = "block";
+                    fileLink.innerText = "View Uploaded File";
+                } else {
+                    status.innerText = `Upload failed: ${result.message || "Unknown error"}`;
+                }
+            } catch (error) {
+                status.innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
